@@ -16,6 +16,35 @@
 
 - The program will run interactively.  Follow the prompts to customize your simulation
 
+## Browser application
+
+The repository also contains a completely client-side WebAssembly/WebGL version of
+the Lennard-Jones simulation. It uses the original model (216 particles, all-pairs
+forces, and reflecting walls) and presents its outputs in the browser.
+
+### Prerequisites
+
+- Node.js 20 or later
+- [Emscripten SDK 3.1.64](https://emscripten.org/docs/getting_started/downloads.html)
+  activated so that `emcc` is on `PATH`
+
+### Run locally
+
+```sh
+npm install
+npm run dev
+```
+
+### Create a static production build
+
+```sh
+npm run build
+```
+
+The `dist/` directory is a static site: it makes no backend requests and can be
+served by any static-file host. `npm run build:wasm` compiles `wasm/md_core.cpp`
+into the browser assets before Vite bundles the app.
+
 *Note for Windows users on Cygwin installation:*  Our J. Chem. Ed. article suggests installing **all** Cygwin packages, which is quite large and time consuming.  Success with a much lighter installation has been reported 
 by selecting the default package installation plus 3 additional packages under the "devel" sub-heading.
 As accessed on 01/08/2020, these packages and version numbers are as follows:
@@ -23,6 +52,5 @@ As accessed on 01/08/2020, these packages and version numbers are as follows:
 - gcc-g++ (7.4.0-1) 
 - git (2.21.0-1)
 - make (4.2.1-2)
-
 
 
