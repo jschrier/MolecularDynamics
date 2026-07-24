@@ -53,4 +53,8 @@ As accessed on 01/08/2020, these packages and version numbers are as follows:
 - git (2.21.0-1)
 - make (4.2.1-2)
 
+## WebGPU acceleration
 
+At page load, the simulation worker checks whether it can acquire a WebGPU adapter and device.  When available, WebGPU is enabled directly; otherwise the reference WebAssembly backend runs normally.  The Engine indicator lets users force WebAssembly for the current page session.  GPU failures fall back to WebAssembly automatically.  The GPU kernel uses `float32`, so its results are physically equivalent but not bitwise identical to the `float64` WebAssembly reference.
+
+For development-only complete-run comparisons, append `?benchmark=1` to the local app URL and use the **Run development benchmark** control.  It reports matched, seeded WebGPU and WebAssembly timings for the current browser/device; benchmark results are not representative of other browsers, hardware, thermal states, or simulation inputs.
