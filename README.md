@@ -1,11 +1,11 @@
 # Lennard-Jones Molecular Dynamics
 
 A GPU-accelerated molecular-dynamics application for simulating a
-216-particle Lennard-Jones noble gas that runs entirely in a web-browser, with no servers, accounts, or data-upload required.
+216-particle Lennard-Jones noble gas that runs entirely in a web-browser, with no servers, accounts, or data-upload required. [Try it.](https://jschrier.github.io/MolecularDynamics/)
 
 This is adapted from [Foley et al's C++ code](https://github.com/FoleyLab/MolecularDynamics).  More information about this program, including detailed instructions for its use, can be found [here for instructions](https://pubs.acs.org/doi/suppl/10.1021/acs.jchemed.7b00747) and [here for discussion of its use in an undergraduate laboratory setting](https://pubs.acs.org/doi/pdf/10.1021/acs.jchemed.7b00747).
 
-The current application preserves the calculations and output conventions of the
+This [web version](https://jschrier.github.io/MolecularDynamics/) preserves the calculations and output conventions of the
 original teaching code while replacing terminal prompts and trajectory files
 with an interactive interface, downloadable text reports, and a WebGL
 trajectory viewer.
@@ -26,6 +26,8 @@ bitwise identical, to the `float64` WebAssembly reference.  WebGPU is optional:
 the application continues to work with WebAssembly when it is unavailable.
 
 ## Try it and deploy it
+
+[Try it](https://jschrier.github.io/MolecularDynamics/)
 
 The production build is a static `dist/` directory and can be served by any
 static-file host.  This repository includes a GitHub Pages workflow.  After
