@@ -116,7 +116,7 @@ int md_initialize(const char* title, const char* gas, double temperatureKelvin, 
   if (current->volume < particleCount) return 2;
   current->box=std::pow(current->volume,1.0/3.0); current->dt=(current->gasName=="He" ? .2e-14 : .5e-14)/current->gas.time;
   current->rng=seed ? seed : 1; current->frames.reserve(static_cast<size_t>(current->gas.steps+1)*particleCount*3);
-  current->transcript="\n  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n                  WELCOME TO WILLY P CHEM MD!\n  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n                     YOU ARE SIMULATING "+current->gasName+" GAS! \n\n  PERCENTAGE OF CALCULATION COMPLETE:\n  [";
+  current->transcript="\n                     YOU ARE SIMULATING "+current->gasName+" GAS! \n";
   current->output="  time (s)              T(t) (K)              P(t) (Pa)           Kinetic En. (n.u.)     Potential En. (n.u.) Total En. (n.u.)\n";
   current->initializePositions(); current->accelerations(); current->initialized=true; return 0;
 }
@@ -128,7 +128,6 @@ int md_step(int count) {
     std::ostringstream row; row << "  " << std::scientific << std::setprecision(4) << std::setw(8) << current->step*current->dt*current->gas.time
       << std::fixed << std::setprecision(8) << "  " << std::setw(20) << temp << "  " << std::setw(20) << press << " " << std::setw(20) << ke << "  " << std::setw(20) << pe << "  " << std::setw(20) << ke+pe << " \n";
     current->output += row.str(); current->capture();
-    const int tenth=current->gas.steps/10; if (tenth && (current->step+1)%tenth==0) current->transcript += " " + std::to_string((current->step+1)/tenth*10) + " |";
   }
   if (current->step>current->gas.steps) { current->transcript += "\n"; current->finish(); } return 1;
 }
