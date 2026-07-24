@@ -2,6 +2,9 @@
   "name": "lennard-jones-md-web",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "node": ">=20.19.0 <21"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

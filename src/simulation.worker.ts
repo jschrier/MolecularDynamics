@@ -21,9 +21,10 @@ const CHUNK_STEPS = 20;
 
 async function module(): Promise<MdModule> {
   if (!modulePromise) {
-    const loaderUrl: string = '/wasm/md-core.js';
+    // Resolve from this hashed worker asset so GitHub Pages project URLs work.
+    const loaderUrl = new URL('../wasm/md-core.js', self.location.href).href;
     const factory = (await import(/* @vite-ignore */ loaderUrl)).default as Factory;
-    modulePromise = factory({ locateFile: (file) => `/wasm/${file}` });
+    modulePromise = factory({ locateFile: (file) => new URL(file, loaderUrl).href });
   }
   return modulePromise;
 }

@@ -1,60 +1,94 @@
-- Source code for Molecular Dynamics Program - can compile and run on Linux, Windows, and Mac OSX
+# Lennard-Jones Molecular Dynamics
 
-- More information about this program, including detailed instructions for its use, can be found [here for instructions](https://pubs.acs.org/doi/suppl/10.1021/acs.jchemed.7b00747) and [here for discussion of its use in an undergraduate laboratory setting](https://pubs.acs.org/doi/pdf/10.1021/acs.jchemed.7b00747)
+A GPU-accelerated molecular-dynamics application for simulating a
+216-particle Lennard-Jones noble gas that runs entirely in a web-browser, with no servers, accounts, or data-upload required.
 
-- This folder should containt the source code (MD.cpp) and a makefile which can be used to compile the source to a machine-executable file.
+This is adapted from [Foley et al's C++ code](https://github.com/FoleyLab/MolecularDynamics).  More information about this program, including detailed instructions for its use, can be found [here for instructions](https://pubs.acs.org/doi/suppl/10.1021/acs.jchemed.7b00747) and [here for discussion of its use in an undergraduate laboratory setting](https://pubs.acs.org/doi/pdf/10.1021/acs.jchemed.7b00747).
 
-- A copy of the gnu public license (LICENSE.md) should be included.
+The current application preserves the calculations and output conventions of the
+original teaching code while replacing terminal prompts and trajectory files
+with an interactive interface, downloadable text reports, and a WebGL
+trajectory viewer.
 
-- To compile this code using a gnu C/C++ compiler and create an executable called 'MD.exe' in a Linux/Unix environment, type
-  
-  `make`
-  
-- To run the program in a Linux/Unix environment, type
-  
-  `./MD.exe` 
+## Features
 
-- The program will run interactively.  Follow the prompts to customize your simulation
+- Supports He, Ne, Ar, Kr, and Xe with the original gas-specific settings.
+- Uses WebAssembly as the portable reference backend.
+- Uses WebGPU directly when a worker can acquire a usable device; users can
+  switch to WebAssembly for the current page session.
+- Displays retained trajectory frames with Three.js controls for orbit, pan,
+  zoom, playback, and scrubbing.
+- Provides reference-style instantaneous and average thermodynamic output for
+  download.
 
-## Browser application
+WebGPU results use `float32` GPU state and are physically equivalent, but not
+bitwise identical, to the `float64` WebAssembly reference.  WebGPU is optional:
+the application continues to work with WebAssembly when it is unavailable.
 
-The repository also contains a completely client-side WebAssembly/WebGL version of
-the Lennard-Jones simulation. It uses the original model (216 particles, all-pairs
-forces, and reflecting walls) and presents its outputs in the browser.
+## Try it and deploy it
+
+The production build is a static `dist/` directory and can be served by any
+static-file host.  This repository includes a GitHub Pages workflow.  After
+pushing it to GitHub, enable **Settings → Pages → Build and deployment →
+GitHub Actions**.  Pushes to the default branch will then publish the site.
+
+## Local development
 
 ### Prerequisites
 
-- Node.js 20 or later
-- [Emscripten SDK 3.1.64](https://emscripten.org/docs/getting_started/downloads.html)
+- Node.js 20.19.0 (the checked-in `.nvmrc` selects this version)
+- [Emscripten SDK 3.1.64](https://emscripten.org/docs/getting_started/downloads.html),
   activated so that `emcc` is on `PATH`
 
-### Run locally
-
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
-### Create a static production build
+For a production-equivalent static build:
 
 ```sh
 npm run build
+npm run preview
 ```
 
-The `dist/` directory is a static site: it makes no backend requests and can be
-served by any static-file host. `npm run build:wasm` compiles `wasm/md_core.cpp`
-into the browser assets before Vite bundles the app.
+`npm run build` first recompiles `wasm/md_core.cpp` into
+`public/wasm/md-core.js` and `public/wasm/md-core.wasm`, then bundles the
+application with Vite.  The generated `dist/` directory is intentionally not
+committed.
 
-*Note for Windows users on Cygwin installation:*  Our J. Chem. Ed. article suggests installing **all** Cygwin packages, which is quite large and time consuming.  Success with a much lighter installation has been reported 
-by selecting the default package installation plus 3 additional packages under the "devel" sub-heading.
-As accessed on 01/08/2020, these packages and version numbers are as follows:
+## Tests
 
-- gcc-g++ (7.4.0-1) 
-- git (2.21.0-1)
-- make (4.2.1-2)
+```sh
+npm test
+npx tsc -b --pretty false
+```
 
-## WebGPU acceleration
+The GitHub Actions workflow runs these checks and a complete Emscripten/Vite
+build for every push and pull request.
 
-At page load, the simulation worker checks whether it can acquire a WebGPU adapter and device.  When available, WebGPU is enabled directly; otherwise the reference WebAssembly backend runs normally.  The Engine indicator lets users force WebAssembly for the current page session.  GPU failures fall back to WebAssembly automatically.  The GPU kernel uses `float32`, so its results are physically equivalent but not bitwise identical to the `float64` WebAssembly reference.
+For development-only, matched complete-run WebGPU/WebAssembly timing
+comparisons, append `?benchmark=1` to a local application URL.  This benchmark
+never runs during an ordinary simulation; its result is specific to the
+browser, hardware, thermal state, and selected simulation input.
 
-For development-only complete-run comparisons, append `?benchmark=1` to the local app URL and use the **Run development benchmark** control.  It reports matched, seeded WebGPU and WebAssembly timings for the current browser/device; benchmark results are not representative of other browsers, hardware, thermal states, or simulation inputs.
+## Reference implementations
+
+The original teaching implementations by [Foley et al.](https://github.com/FoleyLab/MolecularDynamics) are retained for provenance and
+comparison:
+
+- `reference/cpp/MD.cpp` and `reference/cpp/Makefile`: original C++ program.
+- `reference/python/md.ipynb`: original notebook version.
+
+The WebAssembly core in `wasm/md_core.cpp` is the browser adaptation used by
+the application.
+
+## License and acknowledgments
+
+This project is licensed under the GNU General Public License, version 3 or
+later; see [LICENSE](LICENSE).  The original C++ program is credited in its source
+header to Jonathan J. Foley IV, Chelsea Sweet, and Oyewumi Akinfenwa.  This revision to a web-browser-based system was performed by Joshua Schrier with the help of gpt-5.6-terra.
+
+The browser renderer bundles [three.js](https://threejs.org/), which is made
+available under the MIT License.  Its license text is included in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
