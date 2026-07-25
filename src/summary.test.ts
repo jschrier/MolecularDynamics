@@ -29,6 +29,7 @@ describe('automation summary contract', () => {
 
   it('uses stable metric identifiers, numeric values, and units for the semantic table', () => {
     expect(summaryTableRows(summary)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ metric: 'totalTimeSeconds', label: 'Total simulation time', unit: 's', value: 1e-10 }),
       expect.objectContaining({ metric: 'averageTemperatureKelvin', value: 100.02143, unit: 'K' }),
       expect.objectContaining({ metric: 'percentError', value: 12.14153, unit: '%' }),
       expect.objectContaining({ metric: 'volumeCubicMeters', value: 1.02479e-26, unit: 'm³' })

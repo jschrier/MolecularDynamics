@@ -21,7 +21,7 @@ export interface SummaryTableRow {
 // The JSON keys and metric identifiers below are stable automation-facing interfaces.
 // Coordinate any rename with consumers that read the rendered table or JSON payload.
 const rowDefinitions: Array<Omit<SummaryTableRow, 'value' | 'displayValue'>> = [
-  { metric: 'totalTimeSeconds', label: 'Total time', unit: 's' },
+  { metric: 'totalTimeSeconds', label: 'Total simulation time', unit: 's' },
   { metric: 'averageTemperatureKelvin', label: 'Average temperature', unit: 'K' },
   { metric: 'averagePressurePascal', label: 'Average pressure', unit: 'Pa' },
   { metric: 'pvOverNtJoulesPerMoleKelvin', label: 'PV/nT', unit: 'J/(mol K)' },
