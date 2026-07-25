@@ -138,6 +138,22 @@ int md_frame_count() { return current ? static_cast<int>(current->frames.size()/
 float* md_frame_ptr() { return current && !current->frames.empty() ? current->frames.data() : nullptr; }
 double md_box_length() { return current ? current->box : 0; }
 double md_progress() { return current ? static_cast<double>(current->step)/(current->gas.steps+1) : 0; }
+double md_total_time_seconds() { return current ? (current->gas.steps+1)*current->dt*current->gas.time : 0; }
+double md_average_temperature() { return current ? current->tAverage/current->gas.steps : 0; }
+double md_average_pressure() { return current ? current->pAverage/current->gas.steps : 0; }
+double md_pv_over_nt() {
+  if (!current) return 0;
+  const double ta = current->tAverage/current->gas.steps, pa = current->pAverage/current->gas.steps;
+  return NA*pa*(current->volume*current->gas.volume)/(particleCount*ta);
+}
+double md_percent_error() { return 100*std::fabs(md_pv_over_nt()-8.3144598)/8.3144598; }
+double md_compressibility_factor() {
+  if (!current) return 0;
+  const double ta = current->tAverage/current->gas.steps, pa = current->pAverage/current->gas.steps;
+  return pa*(current->volume*current->gas.volume)/(particleCount*kBSI*ta);
+}
+double md_volume_cubic_meters() { return current ? current->volume*current->gas.volume : 0; }
+int md_particle_count() { return particleCount; }
 const char* md_output_ptr() { return current ? current->output.c_str() : ""; }
 const char* md_average_ptr() { return current ? current->averages.c_str() : ""; }
 const char* md_console_ptr() { return current ? current->transcript.c_str() : ""; }

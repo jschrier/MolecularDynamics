@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import type { EngineState, SimulationInput, WorkerEvent, WorkerRequest } from './protocol';
+import type { EngineState, SimulationEngine, SimulationInput, SimulationSummary, WorkerEvent, WorkerRequest } from './protocol';
 import { probeWebGpu, runWebGpu, type GpuResult } from './webgpu';
 
 interface MdModule {
@@ -68,12 +68,23 @@ async function runWasm(input: SimulationInput, seed: number, reportProgress = tr
   const ptr = wasm.cwrap('md_frame_ptr', 'number', [])() as number;
   const frames = wasm.HEAPF32.slice(ptr / Float32Array.BYTES_PER_ELEMENT, ptr / Float32Array.BYTES_PER_ELEMENT + frameCount * 216 * 3);
   const text = (name: string) => wasm.UTF8ToString(wasm.cwrap(name, 'number', [])() as number);
-  return { frames, frameCount, boxLength: wasm.cwrap('md_box_length', 'number', [])() as number, output: text('md_output_ptr'), averages: text('md_average_ptr'), transcript: text('md_console_ptr') };
+  const number = (name: string) => wasm.cwrap(name, 'number', [])() as number;
+  const summary: SimulationSummary = {
+    totalTimeSeconds: number('md_total_time_seconds'),
+    averageTemperatureKelvin: number('md_average_temperature'),
+    averagePressurePascal: number('md_average_pressure'),
+    pvOverNtJoulesPerMoleKelvin: number('md_pv_over_nt'),
+    percentError: number('md_percent_error'),
+    compressibilityFactor: number('md_compressibility_factor'),
+    volumeCubicMeters: number('md_volume_cubic_meters'),
+    particleCount: number('md_particle_count')
+  };
+  return { frames, frameCount, boxLength: number('md_box_length'), output: text('md_output_ptr'), averages: text('md_average_ptr'), transcript: text('md_console_ptr'), summary };
 }
 
-function complete(result: SimulationResult) {
+function complete(result: SimulationResult, usedEngine: SimulationEngine) {
   const frameBuffer = result.frames.buffer as ArrayBuffer;
-  send({ type: 'complete', frames: frameBuffer, frameCount: result.frameCount, boxLength: result.boxLength, output: result.output, averages: result.averages, transcript: result.transcript }, [frameBuffer]);
+  send({ type: 'complete', engine: usedEngine, frames: frameBuffer, frameCount: result.frameCount, boxLength: result.boxLength, output: result.output, averages: result.averages, transcript: result.transcript, summary: result.summary }, [frameBuffer]);
 }
 
 async function start(input: SimulationInput) {
@@ -86,7 +97,7 @@ async function start(input: SimulationInput) {
     if (webGpuEnabled && webGpuAvailable) {
       try {
         const gpuResult = await runWebGpu(input, seed, (completed, total) => send({ type: 'progress', completed: Math.round(completed / total * 1000), total: 1000 }), () => cancelRequested);
-        if (gpuResult) { complete(gpuResult); return; }
+        if (gpuResult) { complete(gpuResult, 'webgpu'); return; }
         webGpuAvailable = false;
         engine('unavailable', 'WebGPU became unavailable; restarting with WebAssembly.');
       } catch (error) {
@@ -96,7 +107,7 @@ async function start(input: SimulationInput) {
       }
     }
     const wasmResult = await runWasm(input, seed);
-    if (cancelRequested) send({ type: 'cancelled' }); else complete(wasmResult);
+    if (cancelRequested) send({ type: 'cancelled' }); else complete(wasmResult, 'wasm');
   } catch (error) {
     send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
   } finally { running = false; }

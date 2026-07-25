@@ -8,6 +8,19 @@ export interface SimulationInput {
   seed?: number;
 }
 
+export type SimulationEngine = 'webgpu' | 'wasm';
+
+export interface SimulationSummary {
+  totalTimeSeconds: number;
+  averageTemperatureKelvin: number;
+  averagePressurePascal: number;
+  pvOverNtJoulesPerMoleKelvin: number;
+  percentError: number;
+  compressibilityFactor: number;
+  volumeCubicMeters: number;
+  particleCount: number;
+}
+
 export type WorkerRequest =
   | { type: 'start'; input: SimulationInput }
   | { type: 'probe-engine' }
@@ -22,6 +35,6 @@ export type WorkerEvent =
   | { type: 'progress'; completed: number; total: number }
   | { type: 'engine'; state: EngineState; reason?: string }
   | { type: 'benchmark'; gpuMs?: number; wasmMs?: number; speedup?: number; selected: 'webgpu' | 'wasm'; reason?: string }
-  | { type: 'complete'; frames: ArrayBuffer; frameCount: number; boxLength: number; output: string; averages: string; transcript: string }
+  | { type: 'complete'; engine: SimulationEngine; frames: ArrayBuffer; frameCount: number; boxLength: number; output: string; averages: string; transcript: string; summary: SimulationSummary }
   | { type: 'cancelled' }
   | { type: 'error'; message: string };

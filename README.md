@@ -20,6 +20,7 @@ trajectory viewer.
   zoom, playback, and scrubbing.
 - Provides reference-style instantaneous and average thermodynamic output for
   download.
+- Designed to be easily navigable by AI coding agents.
 
 WebGPU results use `float32` GPU state and are physically equivalent, but not
 bitwise identical, to the `float64` WebAssembly reference.  WebGPU is optional:
@@ -73,6 +74,30 @@ For development-only, matched complete-run WebGPU/WebAssembly timing
 comparisons, append `?benchmark=1` to a local application URL.  This benchmark
 never runs during an ordinary simulation; its result is specific to the
 browser, hardware, thermal state, and selected simulation input.
+
+## Browser automation
+
+The rendered controls can be driven by browser-automation and agentic coding
+tools. Stable `data-testid` attributes identify the form, controls, status,
+progress bar, and result controls. After a run completes, the page exposes a
+semantic summary table and an equivalent JSON record in the
+`#simulation-summary-json` element; the **Download summary.json** button saves
+the same record. This is a convenient automation path for one-off calculations
+without requiring a separate server API.
+
+For example, an agent can be prompted:
+
+```
+Open the Molecular Dynamics page, run Ar at 87 K and 35000 mol/m³ with seed
+12345, wait for completion, and return the JSON summary as a table.
+```
+
+This automation path can also compose longer simulations and data-analysis
+workflows in AI coding agents:
+
+```
+/browser Help me automate some simulations.  Access the webpage https://jschrier.github.io/MolecularDynamics/ and use it to run a series of Argon simulations where you set the temperature to [100, 200, 300, 400] K.  Run each simulation and save the outputs.  Then plot the compressibility as a function of temperature.
+```
 
 ## Reference implementations
 

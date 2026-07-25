@@ -1,4 +1,4 @@
-import type { Gas, SimulationInput } from './protocol';
+import type { Gas, SimulationInput, SimulationSummary } from './protocol';
 
 const N = 216;
 const NA = 6.022140857e23;
@@ -15,7 +15,7 @@ const gases: Record<Gas, GasConstants> = {
   Xe: { volume: 5.4872e-29, pressure: 70527773.72794868, temperature: 280.30305642163006, time: 9.018957925790732e-13, steps: 20000 }
 };
 
-export type GpuResult = { frames: Float32Array; frameCount: number; boxLength: number; output: string; averages: string; transcript: string };
+export type GpuResult = { frames: Float32Array; frameCount: number; boxLength: number; output: string; averages: string; transcript: string; summary: SimulationSummary };
 type Gpu = { requestAdapter(): Promise<any> };
 
 export async function probeWebGpu(): Promise<{ available: boolean; reason?: string }> {
@@ -138,8 +138,9 @@ export async function runWebGpu(input: SimulationInput, seed: number, progress: 
     for(let frame=0;frame<count;frame++,step++) { let v2=0,ke=0,pe=0,impulse=0; for(let i=0;i<N;i++) { const m=(frame*N+i)*4; v2+=values[m];ke+=values[m+1];pe+=values[m+2];impulse+=values[m+3]; } const temperature=v2/N/3*setup.gas.temperature, pressure=impulse/(6*setup.box*setup.box)*setup.gas.pressure; pAverage+=pressure;tAverage+=temperature; rows.push(`  ${exp(step*setup.dt*setup.gas.time,4).padStart(8)}  ${fmt(temperature,8).padStart(20)}  ${fmt(pressure,8).padStart(20)} ${fmt(ke,8).padStart(20)}  ${fmt(pe,8).padStart(20)}  ${fmt(ke+pe,8).padStart(20)} `); }
     progress(step,total); await new Promise<void>(resolve=>setTimeout(resolve,0));
   }
-  pos.destroy();vel.destroy();uniform.destroy(); const ta=tAverage/setup.gas.steps, pa=pAverage/setup.gas.steps, gc=NA*pa*(setup.volume*setup.gas.volume)/(N*ta), z=pa*(setup.volume*setup.gas.volume)/(N*kBSI*ta);
-  const averages=`  Total Time (s)      T (K)               P (Pa)      PV/nT (J/(mol K))         Z           V (m^3)              N\n --------------   -----------        ---------------   --------------   ---------------   ------------   -----------\n  ${exp(total*setup.dt*setup.gas.time,4)}  ${fmt(ta,5).padStart(15)}       ${fmt(pa,5).padStart(15)}     ${fmt(gc,5).padStart(10)}       ${fmt(z,5).padStart(10)}        ${exp(setup.volume*setup.gas.volume,5)}         ${N}\n`;
-  const transcript=`\n                     YOU ARE SIMULATING ${input.gas} GAS! \n\n  AVERAGE TEMPERATURE (K):                 ${fmt(ta,5)}\n  AVERAGE PRESSURE  (Pa):                  ${fmt(pa,5)}\n  PV/nT (J * mol^-1 K^-1):                 ${fmt(gc,5)}\n  PERCENT ERROR of pV/nT AND GAS CONSTANT: ${fmt(100*Math.abs(gc-8.3144598)/8.3144598,5)}\n  THE COMPRESSIBILITY (unitless):          ${fmt(z,5)}\n  TOTAL VOLUME (m^3):                      ${exp(setup.volume*setup.gas.volume,5)}\n  NUMBER OF PARTICLES (unitless):          ${N}\n`;
-  return { frames, frameCount:total, boxLength:setup.box, output:rows.join('\n')+'\n', averages, transcript };
+  pos.destroy();vel.destroy();uniform.destroy(); const ta=tAverage/setup.gas.steps, pa=pAverage/setup.gas.steps, gc=NA*pa*(setup.volume*setup.gas.volume)/(N*ta), z=pa*(setup.volume*setup.gas.volume)/(N*kBSI*ta), totalTimeSeconds=total*setup.dt*setup.gas.time, percentError=100*Math.abs(gc-8.3144598)/8.3144598;
+  const averages=`  Total Time (s)      T (K)               P (Pa)      PV/nT (J/(mol K))         Z           V (m^3)              N\n --------------   -----------        ---------------   --------------   ---------------   ------------   -----------\n  ${exp(totalTimeSeconds,4)}  ${fmt(ta,5).padStart(15)}       ${fmt(pa,5).padStart(15)}     ${fmt(gc,5).padStart(10)}       ${fmt(z,5).padStart(10)}        ${exp(setup.volume*setup.gas.volume,5)}         ${N}\n`;
+  const transcript=`\n                     YOU ARE SIMULATING ${input.gas} GAS! \n\n  AVERAGE TEMPERATURE (K):                 ${fmt(ta,5)}\n  AVERAGE PRESSURE  (Pa):                  ${fmt(pa,5)}\n  PV/nT (J * mol^-1 K^-1):                 ${fmt(gc,5)}\n  PERCENT ERROR of pV/nT AND GAS CONSTANT: ${fmt(percentError,5)}\n  THE COMPRESSIBILITY (unitless):          ${fmt(z,5)}\n  TOTAL VOLUME (m^3):                      ${exp(setup.volume*setup.gas.volume,5)}\n  NUMBER OF PARTICLES (unitless):          ${N}\n`;
+  const summary: SimulationSummary={totalTimeSeconds,averageTemperatureKelvin:ta,averagePressurePascal:pa,pvOverNtJoulesPerMoleKelvin:gc,percentError,compressibilityFactor:z,volumeCubicMeters:setup.volume*setup.gas.volume,particleCount:N};
+  return { frames, frameCount:total, boxLength:setup.box, output:rows.join('\n')+'\n', averages, transcript, summary };
 }
