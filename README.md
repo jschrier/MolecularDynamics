@@ -96,7 +96,11 @@ This automation path can also compose longer simulations and data-analysis
 workflows in AI coding agents:
 
 ```
-/browser Help me automate some simulations.  Access the webpage https://jschrier.github.io/MolecularDynamics/ and use it to run a series of Argon simulations where you set the temperature to [100, 200, 300, 400] K.  Run each simulation and save the outputs.  Then plot the compressibility as a function of temperature.
+/browser Help me automate some simulations.  
+Access the webpage https://jschrier.github.io/MolecularDynamics/ 
+and use it to run a series of Argon simulations where you set the temperature 
+to [100, 200, 300, 400] K.  Run each simulation and save the outputs.  Then 
+plot the compressibility as a function of temperature.
 ```
 
 ## Reference implementations
